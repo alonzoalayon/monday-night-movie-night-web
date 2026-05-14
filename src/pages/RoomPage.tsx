@@ -142,7 +142,7 @@ export function RoomPage({ session }: RoomPageProps) {
           </div>
         </header>
 
-        <CurrentWeeklyPick roomId={room.id} />
+        <CurrentWeeklyPick roomId={room.id} currentUserId={session.user.id} />
 
         <PickMoviePanel roomId={room.id} userId={session.user.id} />
 

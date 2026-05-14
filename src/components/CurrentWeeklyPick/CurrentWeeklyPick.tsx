@@ -14,9 +14,16 @@ type WeeklyPick = {
   created_at: string;
   completed_at: string | null;
   used_wildcard: boolean;
+  picker_user_id: string;
+
+  room: {
+    owner_id: string;
+  } | null;
+
   active_movie: MoviePick | null;
   main_movie: MoviePick | null;
   wildcard_movie: MoviePick | null;
+
   profiles: {
     display_name: string | null;
   } | null;
@@ -24,6 +31,7 @@ type WeeklyPick = {
 
 type CurrentWeeklyPickProps = {
   roomId: string;
+  currentUserId: string;
 };
 
 const firstOrNull = <T,>(value: T | T[] | null): T | null => {
@@ -34,7 +42,10 @@ const firstOrNull = <T,>(value: T | T[] | null): T | null => {
   return value;
 };
 
-const CurrentWeeklyPick = ({ roomId }: CurrentWeeklyPickProps) => {
+const CurrentWeeklyPick = ({
+  roomId,
+  currentUserId,
+}: CurrentWeeklyPickProps) => {
   const [pick, setPick] = useState<WeeklyPick | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -55,6 +66,11 @@ const CurrentWeeklyPick = ({ roomId }: CurrentWeeklyPickProps) => {
           created_at,
           completed_at,
           used_wildcard,
+          picker_user_id,
+
+          room:movie_rooms (
+            owner_id
+          ),
 
           active_movie:member_movie_lists!weekly_picks_active_movie_list_item_id_fkey (
             title,
@@ -97,6 +113,7 @@ const CurrentWeeklyPick = ({ roomId }: CurrentWeeklyPickProps) => {
 
       setPick({
         ...data,
+        room: firstOrNull(data.room),
         active_movie: firstOrNull(data.active_movie),
         main_movie: firstOrNull(data.main_movie),
         wildcard_movie: firstOrNull(data.wildcard_movie),
@@ -184,6 +201,10 @@ const CurrentWeeklyPick = ({ roomId }: CurrentWeeklyPickProps) => {
     );
   }
 
+  const canCompletePick =
+    currentUserId === pick.picker_user_id ||
+    currentUserId === pick.room?.owner_id;
+
   return (
     <section className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black shadow-2xl">
       <div className="p-5 sm:p-6">
@@ -257,7 +278,7 @@ const CurrentWeeklyPick = ({ roomId }: CurrentWeeklyPickProps) => {
                 <p className="rounded-xl bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-300">
                   Watched ✅
                 </p>
-              ) : (
+              ) : canCompletePick ? (
                 <button
                   onClick={handleCompletePick}
                   disabled={completing}
@@ -265,6 +286,10 @@ const CurrentWeeklyPick = ({ roomId }: CurrentWeeklyPickProps) => {
                 >
                   {completing ? "Completing..." : "Mark as watched"}
                 </button>
+              ) : (
+                <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-zinc-400">
+                  Only the picker or room owner can mark this as watched.
+                </p>
               )}
 
               {pick.wildcard_movie &&
