@@ -17,6 +17,14 @@ type RoomMembersListProps = {
   isOwner: boolean;
 };
 
+const firstOrNull = <T,>(value: T | T[] | null): T | null => {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value;
+};
+
 const RoomMembersList = ({
   roomId,
   currentUserId,
@@ -53,11 +61,20 @@ const RoomMembersList = ({
       return;
     }
 
-    setMembers(data ?? []);
+    setMembers(
+      (data ?? []).map((member) => ({
+        ...member,
+        profiles: firstOrNull(member.profiles),
+      })),
+    );
   };
 
   useEffect(() => {
-    fetchMembers();
+    const loadMembers = async () => {
+      await fetchMembers();
+    };
+
+    loadMembers();
   }, [roomId]);
 
   const handleRemoveMember = async (member: RoomMember) => {

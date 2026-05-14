@@ -34,7 +34,11 @@ const RoomList = () => {
   };
 
   useEffect(() => {
-    fetchRooms();
+    const loadRooms = async () => {
+      await fetchRooms();
+    };
+
+    loadRooms();
   }, []);
 
   if (loading) return <p className="text-sm text-zinc-400">Loading rooms...</p>;

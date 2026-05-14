@@ -26,6 +26,14 @@ type CurrentWeeklyPickProps = {
   roomId: string;
 };
 
+const firstOrNull = <T,>(value: T | T[] | null): T | null => {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value;
+};
+
 const CurrentWeeklyPick = ({ roomId }: CurrentWeeklyPickProps) => {
   const [pick, setPick] = useState<WeeklyPick | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +95,13 @@ const CurrentWeeklyPick = ({ roomId }: CurrentWeeklyPickProps) => {
         return;
       }
 
-      setPick(data);
+      setPick({
+        ...data,
+        active_movie: firstOrNull(data.active_movie),
+        main_movie: firstOrNull(data.main_movie),
+        wildcard_movie: firstOrNull(data.wildcard_movie),
+        profiles: firstOrNull(data.profiles),
+      });
     };
 
     fetchWeeklyPick();

@@ -23,6 +23,14 @@ type PickHistoryProps = {
   roomId: string;
 };
 
+const firstOrNull = <T,>(value: T | T[] | null): T | null => {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value;
+};
+
 const PickHistory = ({ roomId }: PickHistoryProps) => {
   const [history, setHistory] = useState<PickHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +70,13 @@ const PickHistory = ({ roomId }: PickHistoryProps) => {
         return;
       }
 
-      setHistory(data ?? []);
+      setHistory(
+        (data ?? []).map((pick) => ({
+          ...pick,
+          active_movie: firstOrNull(pick.active_movie),
+          profiles: firstOrNull(pick.profiles),
+        })),
+      );
     };
 
     fetchHistory();

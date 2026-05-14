@@ -46,7 +46,11 @@ const MyMovieList = ({ roomId, userId, refreshKey }: MyMovieListProps) => {
   };
 
   useEffect(() => {
-    fetchMovies();
+    const loadMovies = async () => {
+      await fetchMovies();
+    };
+
+    loadMovies();
   }, [roomId, userId, refreshKey]);
 
   const handleAddMovie = async () => {
