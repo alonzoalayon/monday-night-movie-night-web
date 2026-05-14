@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { CreateRoomForm } from "../components/CreateRoomForm";
 import { JoinRoomForm } from "../components/JoinRoomForm";
 import { RoomList } from "../components/RoomList";
+import { Link } from "react-router-dom";
 
 type DashboardPageProps = {
   session: Session;
@@ -33,12 +34,23 @@ export function DashboardPage({ session }: DashboardPageProps) {
               </p>
             </div>
 
-            <button
-              onClick={handleSignOut}
-              className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/15 sm:w-auto"
-            >
-              Sign out
-            </button>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/profile"
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
+                >
+                  Profile
+                </Link>
+
+                <button
+                  onClick={handleSignOut}
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
+                >
+                  Sign out
+                </button>
+              </div>
+            </div>
           </div>
 
           <p className="mt-5 text-xs text-zinc-500">

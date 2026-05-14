@@ -5,6 +5,7 @@ import { supabase } from "./lib/supabase";
 import { AuthForm } from "./components/AuthForm";
 import { DashboardPage } from "./pages/DashboardPage";
 import { RoomPage } from "./pages/RoomPage";
+import { ProfilePage } from "./pages/ProfilePage";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -38,6 +39,8 @@ export default function App() {
       <Route path="/" element={<DashboardPage session={session} />} />
 
       <Route path="/rooms/:roomId" element={<RoomPage session={session} />} />
+
+      <Route path="/profile" element={<ProfilePage session={session} />} />
     </Routes>
   );
 }

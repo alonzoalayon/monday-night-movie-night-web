@@ -43,6 +43,10 @@ export function RoomPage({ session }: RoomPageProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   const handleMovieAdded = () => {
     setMovieListRefreshKey((previous) => previous + 1);
   };
@@ -133,12 +137,23 @@ export function RoomPage({ session }: RoomPageProps) {
               </p>
             </div>
 
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
-            >
-              Sign out
-            </button>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/profile"
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
+                >
+                  Profile
+                </Link>
+
+                <button
+                  onClick={handleSignOut}
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
+                >
+                  Sign out
+                </button>
+              </div>
+            </div>
           </div>
         </header>
 
