@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 
 type MovieResult = {
@@ -15,15 +15,46 @@ type MovieSearchProps = {
   onMovieAdded?: () => void;
 };
 
+type ExistingMovie = {
+  tmdb_movie_id: string | null;
+  watched: boolean;
+};
+
 const MovieSearch = ({ roomId, userId, onMovieAdded }: MovieSearchProps) => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<MovieResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [existingMovies, setExistingMovies] = useState<ExistingMovie[]>([]);
+
+  const getExistingMovieStatus = (tmdbMovieId: number) => {
+    const existingMovie = existingMovies.find(
+      (movie) => movie.tmdb_movie_id === tmdbMovieId.toString(),
+    );
+
+    if (!existingMovie) return null;
+
+    return existingMovie.watched ? "watched" : "listed";
+  };
 
   const clearResults = () => {
     setResults([]);
     setQuery("");
+  };
+
+  const fetchExistingMovies = async () => {
+    const { data, error } = await supabase
+      .from("member_movie_lists")
+      .select("tmdb_movie_id, watched")
+      .eq("room_id", roomId)
+      .eq("user_id", userId);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setExistingMovies(data ?? []);
   };
 
   const searchMovies = async () => {
@@ -64,8 +95,21 @@ const MovieSearch = ({ roomId, userId, onMovieAdded }: MovieSearchProps) => {
     }
 
     setMessage(`Added ${movie.title}`);
+    await fetchExistingMovies();
     onMovieAdded?.();
   };
+
+  // useEffect(() => {
+  //   fetchExistingMovies();
+  // }, [roomId, userId]);
+
+  useEffect(() => {
+    const loadExistingMovies = async () => {
+      await fetchExistingMovies();
+    };
+
+    loadExistingMovies();
+  }, [roomId, userId]);
 
   return (
     <section>
@@ -123,12 +167,14 @@ const MovieSearch = ({ roomId, userId, onMovieAdded }: MovieSearchProps) => {
         )}
       </div>
 
-      <div className="mt-4 max-h-[700px] overflow-y-auto pr-1">
+      <div className="mt-4 overflow-visible pr-0 md:max-h-[700px] md:overflow-y-auto md:pr-1">
         <div className="grid gap-4">
           {results.map((movie) => {
             const posterUrl = movie.poster_path
               ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
               : null;
+
+            const existingStatus = getExistingMovieStatus(movie.id);
 
             return (
               <div
@@ -169,9 +215,14 @@ const MovieSearch = ({ roomId, userId, onMovieAdded }: MovieSearchProps) => {
 
                     <button
                       onClick={() => handleAddMovie(movie)}
-                      className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-zinc-200"
+                      disabled={Boolean(existingStatus)}
+                      className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm font-black text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
                     >
-                      Add to my list
+                      {existingStatus === "watched"
+                        ? "Already watched"
+                        : existingStatus === "listed"
+                          ? "Already in your list"
+                          : "Add to my list"}
                     </button>
                   </div>
                 </div>
