@@ -13,6 +13,7 @@ type WeeklyPick = {
   week_start: string;
   created_at: string;
   completed_at: string | null;
+  skipped_at: string | null;
   used_wildcard: boolean;
   picker_user_id: string;
 
@@ -51,6 +52,7 @@ const CurrentWeeklyPick = ({
   const [message, setMessage] = useState("");
   const [completing, setCompleting] = useState(false);
   const [usingWildcard, setUsingWildcard] = useState(false);
+  const [skipping, setSkipping] = useState(false);
 
   useEffect(() => {
     const fetchWeeklyPick = async () => {
@@ -65,6 +67,7 @@ const CurrentWeeklyPick = ({
           week_start,
           created_at,
           completed_at,
+          skipped_at,
           used_wildcard,
           picker_user_id,
 
@@ -107,6 +110,7 @@ const CurrentWeeklyPick = ({
 
       if (error) {
         if (error.code === "PGRST116") return;
+
         setMessage(error.message);
         return;
       }
@@ -173,6 +177,35 @@ const CurrentWeeklyPick = ({
     }
   };
 
+  const handleSkipPick = async () => {
+    if (!pick) return;
+
+    const confirmed = window.confirm(
+      "Skip this pick? This will move the rotation to the next person.",
+    );
+
+    if (!confirmed) return;
+
+    setSkipping(true);
+    setMessage("");
+
+    const { error } = await supabase.rpc("skip_weekly_pick", {
+      pick_id: pick.id,
+    });
+
+    setSkipping(false);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setPick({
+      ...pick,
+      skipped_at: new Date().toISOString(),
+    });
+  };
+
   if (loading) {
     return (
       <section className="rounded-3xl border border-white/10 bg-white/5 p-5">
@@ -213,7 +246,11 @@ const CurrentWeeklyPick = ({
             This Week&apos;s Pick
           </span>
 
-          {pick.completed_at ? (
+          {pick.skipped_at ? (
+            <span className="rounded-full bg-red-400/10 px-3 py-1 text-xs font-semibold text-red-300">
+              Skipped
+            </span>
+          ) : pick.completed_at ? (
             <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
               Completed
             </span>
@@ -292,9 +329,20 @@ const CurrentWeeklyPick = ({
                 </p>
               )}
 
+              {canCompletePick && !pick.completed_at && !pick.skipped_at && (
+                <button
+                  onClick={handleSkipPick}
+                  disabled={skipping}
+                  className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-bold text-red-200 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {skipping ? "Skipping..." : "Skip this pick"}
+                </button>
+              )}
+
               {pick.wildcard_movie &&
                 !pick.used_wildcard &&
-                !pick.completed_at && (
+                !pick.completed_at &&
+                !pick.skipped_at && (
                   <button
                     onClick={handleUseWildcard}
                     disabled={usingWildcard}
@@ -307,7 +355,7 @@ const CurrentWeeklyPick = ({
           </div>
         </div>
 
-        {pick.wildcard_movie && !pick.used_wildcard && (
+        {pick.wildcard_movie && !pick.used_wildcard && !pick.skipped_at && (
           <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
               Wildcard Backup
