@@ -36,10 +36,7 @@ type CurrentWeeklyPickProps = {
 };
 
 const firstOrNull = <T,>(value: T | T[] | null): T | null => {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
-
+  if (Array.isArray(value)) return value[0] ?? null;
   return value;
 };
 
@@ -75,21 +72,21 @@ const CurrentWeeklyPick = ({
             owner_id
           ),
 
-          active_movie:member_movie_lists!weekly_picks_active_movie_list_item_id_fkey (
+          active_movie:user_movie_shelf!weekly_picks_active_shelf_movie_id_fkey (
             title,
             release_year,
             poster_url,
             overview
           ),
 
-          main_movie:member_movie_lists!weekly_picks_movie_list_item_id_fkey (
+          main_movie:user_movie_shelf!weekly_picks_shelf_movie_id_fkey (
             title,
             release_year,
             poster_url,
             overview
           ),
 
-          wildcard_movie:member_movie_lists!weekly_picks_wildcard_movie_list_item_id_fkey (
+          wildcard_movie:user_movie_shelf!weekly_picks_wildcard_shelf_movie_id_fkey (
             title,
             release_year,
             poster_url,
@@ -110,7 +107,6 @@ const CurrentWeeklyPick = ({
 
       if (error) {
         if (error.code === "PGRST116") return;
-
         setMessage(error.message);
         return;
       }
@@ -234,7 +230,7 @@ const CurrentWeeklyPick = ({
     );
   }
 
-  const canCompletePick =
+  const canManagePick =
     currentUserId === pick.picker_user_id ||
     currentUserId === pick.room?.owner_id;
 
@@ -315,10 +311,10 @@ const CurrentWeeklyPick = ({
                 <p className="rounded-xl bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-300">
                   Watched ✅
                 </p>
-              ) : canCompletePick ? (
+              ) : canManagePick ? (
                 <button
                   onClick={handleCompletePick}
-                  disabled={completing}
+                  disabled={completing || Boolean(pick.skipped_at)}
                   className="rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-black transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {completing ? "Completing..." : "Mark as watched"}
@@ -329,7 +325,7 @@ const CurrentWeeklyPick = ({
                 </p>
               )}
 
-              {canCompletePick && !pick.completed_at && !pick.skipped_at && (
+              {canManagePick && !pick.completed_at && !pick.skipped_at && (
                 <button
                   onClick={handleSkipPick}
                   disabled={skipping}

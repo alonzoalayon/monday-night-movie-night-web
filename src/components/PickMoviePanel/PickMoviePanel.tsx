@@ -7,7 +7,7 @@ type CurrentPicker = {
   turn_order: number;
 };
 
-type MovieListItem = {
+type ShelfMovie = {
   id: string;
   title: string;
   release_year: string | null;
@@ -20,11 +20,8 @@ type PickMoviePanelProps = {
 
 const getMondayWeekStart = () => {
   const date = new Date();
-
   const day = date.getDay();
-
   const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-
   const monday = new Date(date);
 
   monday.setDate(diff);
@@ -36,19 +33,12 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
   const [currentPicker, setCurrentPicker] = useState<CurrentPicker | null>(
     null,
   );
-
-  const [movies, setMovies] = useState<MovieListItem[]>([]);
-
+  const [movies, setMovies] = useState<ShelfMovie[]>([]);
   const [mainMovieId, setMainMovieId] = useState("");
-
   const [wildcardMovieId, setWildcardMovieId] = useState("");
-
   const [message, setMessage] = useState("");
-
   const [loading, setLoading] = useState(true);
-
   const [submitting, setSubmitting] = useState(false);
-
   const [thisWeeksPickExists, setThisWeeksPickExists] = useState(false);
 
   const isCurrentPicker = currentPicker?.user_id === userId;
@@ -60,9 +50,7 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
 
       const { data: pickerData, error: pickerError } = await supabase.rpc(
         "get_current_picker",
-        {
-          target_room_id: roomId,
-        },
+        { target_room_id: roomId },
       );
 
       if (pickerError) {
@@ -91,14 +79,11 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
       setThisWeeksPickExists(Boolean(existingPick));
 
       const { data: movieData, error: movieError } = await supabase
-        .from("member_movie_lists")
+        .from("user_movie_shelf")
         .select("id, title, release_year")
-        .eq("room_id", roomId)
         .eq("user_id", userId)
         .eq("watched", false)
-        .order("created_at", {
-          ascending: false,
-        });
+        .order("created_at", { ascending: false });
 
       setLoading(false);
 
@@ -115,12 +100,11 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
 
   const handleRandomizeMain = () => {
     if (movies.length === 0) {
-      setMessage("Add movies to your list first.");
+      setMessage("Add movies to your shelf first.");
       return;
     }
 
     const randomMovie = movies[Math.floor(Math.random() * movies.length)];
-
     setMainMovieId(randomMovie.id);
   };
 
@@ -157,9 +141,11 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
     const { error } = await supabase.from("weekly_picks").insert({
       room_id: roomId,
       picker_user_id: userId,
-      movie_list_item_id: mainMovieId,
-      wildcard_movie_list_item_id: wildcardMovieId || null,
-      active_movie_list_item_id: mainMovieId,
+
+      shelf_movie_id: mainMovieId,
+      wildcard_shelf_movie_id: wildcardMovieId || null,
+      active_shelf_movie_id: mainMovieId,
+
       week_start: weekStart,
       status: "picked",
     });
@@ -172,7 +158,6 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
     }
 
     setThisWeeksPickExists(true);
-
     setMessage("Weekly movie picked!");
   };
 
@@ -216,7 +201,7 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
         <p className="mt-2 text-sm leading-6 text-zinc-400">
           Next week&apos;s picker will be{" "}
           <span className="font-semibold text-white">
-            {currentPicker?.display_name ?? "the next person in rotation"}
+            {currentPicker.display_name ?? "the next person in rotation"}
           </span>
           .
         </p>
@@ -254,8 +239,8 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
       </h2>
 
       <p className="mt-2 text-sm leading-6 text-zinc-300">
-        Choose the required movie. Add a wildcard if you want one backup for the
-        first 15 minutes.
+        Choose from your personal movie shelf. Add a wildcard if you want one
+        backup for the first 15 minutes.
       </p>
 
       {message && (
@@ -266,7 +251,7 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
 
       {movies.length === 0 ? (
         <p className="mt-5 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
-          Add movies to your list before making this week&apos;s pick.
+          Add movies to your shelf before making this week&apos;s pick.
         </p>
       ) : (
         <div className="mt-5 grid gap-5">
@@ -290,7 +275,6 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
                 {movies.map((movie) => (
                   <option key={movie.id} value={movie.id}>
                     {movie.title}
-
                     {movie.release_year ? ` (${movie.release_year})` : ""}
                   </option>
                 ))}
@@ -326,7 +310,6 @@ const PickMoviePanel = ({ roomId, userId }: PickMoviePanelProps) => {
                   .map((movie) => (
                     <option key={movie.id} value={movie.id}>
                       {movie.title}
-
                       {movie.release_year ? ` (${movie.release_year})` : ""}
                     </option>
                   ))}

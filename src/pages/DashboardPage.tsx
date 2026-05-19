@@ -58,6 +58,10 @@ export function DashboardPage({ session }: DashboardPageProps) {
           </p>
         </header>
 
+        <section className="rounded-3xl border border-white/10 bg-black/30 p-5">
+          <RoomList />
+        </section>
+
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-3xl border border-white/10 bg-zinc-950 p-5">
             <CreateRoomForm />
@@ -67,10 +71,6 @@ export function DashboardPage({ session }: DashboardPageProps) {
             <JoinRoomForm />
           </section>
         </div>
-
-        <section className="rounded-3xl border border-white/10 bg-black/30 p-5">
-          <RoomList />
-        </section>
       </div>
     </main>
   );

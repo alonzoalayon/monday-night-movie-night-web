@@ -44,9 +44,8 @@ const MovieSearch = ({ roomId, userId, onMovieAdded }: MovieSearchProps) => {
 
   const fetchExistingMovies = async () => {
     const { data, error } = await supabase
-      .from("member_movie_lists")
+      .from("user_movie_shelf")
       .select("tmdb_movie_id, watched")
-      .eq("room_id", roomId)
       .eq("user_id", userId);
 
     if (error) {
@@ -77,8 +76,7 @@ const MovieSearch = ({ roomId, userId, onMovieAdded }: MovieSearchProps) => {
   };
 
   const handleAddMovie = async (movie: MovieResult) => {
-    const { error } = await supabase.from("member_movie_lists").insert({
-      room_id: roomId,
+    const { error } = await supabase.from("user_movie_shelf").insert({
       user_id: userId,
       title: movie.title,
       release_year: movie.release_date?.slice(0, 4) ?? null,
@@ -99,10 +97,6 @@ const MovieSearch = ({ roomId, userId, onMovieAdded }: MovieSearchProps) => {
     onMovieAdded?.();
   };
 
-  // useEffect(() => {
-  //   fetchExistingMovies();
-  // }, [roomId, userId]);
-
   useEffect(() => {
     const loadExistingMovies = async () => {
       await fetchExistingMovies();
@@ -120,13 +114,13 @@ const MovieSearch = ({ roomId, userId, onMovieAdded }: MovieSearchProps) => {
           </p>
 
           <h2 className="mt-1 text-2xl font-black text-white">
-            Add movies to your list
+            Add movies to your shelf
           </h2>
         </div>
       </div>
 
       <p className="mt-2 text-sm leading-6 text-zinc-400">
-        Search TMDB and build your personal rotation list for future Mondays.
+        Search TMDB and build your personal movie shelf for future Mondays.
       </p>
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">

@@ -1,14 +1,12 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-
 import { supabase } from "../lib/supabase";
-
 import { CurrentWeeklyPick } from "../components/CurrentWeeklyPick";
 import { PickMoviePanel } from "../components/PickMoviePanel";
 import { RoomMembersList } from "../components/RoomMembersList";
 import { MovieSearch } from "../components/MovieSearch";
-import { MyMovieList } from "../components/MyMovieList";
+import { MyMovieShelf } from "../components/MyMovieShelf";
 import { PickHistory } from "../components/PickHistory";
 import { OwnerControls } from "../components/OwnerControls";
 
@@ -102,8 +100,9 @@ export function RoomPage({ session }: RoomPageProps) {
   }
   const isOwner = room.owner_id === session.user.id;
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="relative min-h-screen overflow-hidden bg-black text-white">
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        {/* Film reels */}
         <div
           className="film-reel absolute -right-28 top-10 h-80 w-80 opacity-10"
           style={{ transform: `rotate(${scrollY * 0.25}deg)` }}
@@ -113,6 +112,19 @@ export function RoomPage({ session }: RoomPageProps) {
           className="film-reel absolute -left-32 bottom-10 h-96 w-96 opacity-10"
           style={{ transform: `rotate(${-scrollY * 0.25}deg)` }}
         />
+
+        {/* Ambient theater glows */}
+        <div className="absolute left-[-120px] top-[10%] h-[320px] w-[320px] rounded-full bg-amber-500/10 blur-3xl" />
+
+        <div className="absolute right-[-120px] top-[40%] h-[260px] w-[260px] rounded-full bg-red-500/5 blur-3xl" />
+
+        <div className="absolute bottom-[-100px] left-[30%] h-[240px] w-[240px] rounded-full bg-amber-300/5 blur-3xl" />
+
+        {/* Projector glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,200,120,0.06),transparent_45%)]" />
+
+        {/* Vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle,transparent_45%,rgba(0,0,0,0.65)_100%)]" />
       </div>
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 pb-20">
         <header className="sticky top-0 z-20 rounded-3xl border border-white/10 bg-black/80 p-4 backdrop-blur">
@@ -180,8 +192,7 @@ export function RoomPage({ session }: RoomPageProps) {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-zinc-950 p-5">
-          <MyMovieList
-            roomId={room.id}
+          <MyMovieShelf
             userId={session.user.id}
             refreshKey={movieListRefreshKey}
           />
